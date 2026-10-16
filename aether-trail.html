@@ -3284,7 +3284,7 @@ const _ewAv=endWave;endWave=function(win,why){const had=B&&B.avEl;_ewAv(win,why)
 // ===================== AVATAR 3D MODEL IN BATTLE (experimental, opt-in) =====================
 const AV3COS=['traveler','sovereign','commander','celestial'];
 const AV3={ld:null,cache:{},obj:null,key:'',mix:null,acts:{},cur:'',last:0,loading:''};
-const av3On=()=>S.set.av3d===true&&window.THREE&&V3&&V3.ok&&V3.scene;
+const av3On=()=>S.set.av3d===true&&isOwner&&window.THREE&&V3&&V3.ok&&V3.scene;
 function av3Loader(){if(AV3.ld)return AV3.ld;AV3.ld=new Promise((res,rej)=>{if(THREE.GLTFLoader){res(new THREE.GLTFLoader());return;}
   const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';sc.onload=()=>THREE.GLTFLoader?res(new THREE.GLTFLoader()):rej('no loader');sc.onerror=()=>rej('load fail');document.head.appendChild(sc);});return AV3.ld;}
 function av3Key(){const k=avKey();return 'avatar_'+(k[0]==='f'?'female':'male')+'_'+AV3COS[+k[1]-1];}
@@ -3304,8 +3304,8 @@ function av3Frame(){const now=performance.now(),dt=Math.min(.1,(now-(AV3.last||n
 const _avBPlace3=avBPlace;avBPlace=function(){_avBPlace3();if(S.set.av3d)av3Ensure();av3Frame();};
 const _ewAv3=endWave;endWave=function(win,why){const had=B&&B.avEl;_ewAv3(win,why);if(had&&AV3.obj&&S.set.av3d)av3Play(win?'Victory':'Defeat');};
 setInterval(()=>{if(AV3.obj&&(!B||!B.avEl||screen!=='battle'))AV3.obj.visible=false;},500);
-const _rsAv3=renderSettings;renderSettings=function(){_rsAv3();const pad=$('setPad');if(!pad)return;const on=S.set.av3d===true;
-  pad.insertAdjacentHTML('beforeend',`<div class="card"><b>🧊 อวาตาร์ 3 มิติ (ทดลอง)</b><div class="sub">ใช้โมเดล 3 มิติจริงของตัวละครคุณในสนามรบ 3 มิติ แทนภาพวาด · มีท่ายืน ฟัน ร่ายเวท โดนตี ฉลอง · ใช้เน็ตเพิ่มประมาณ 0.6MB ต่อชุด</div>
+const _rsAv3=renderSettings;renderSettings=function(){_rsAv3();const pad=$('setPad');if(!pad||!isOwner)return;const on=S.set.av3d===true;
+  pad.insertAdjacentHTML('beforeend',`<div class="card"><b>🧊 อวาตาร์ 3 มิติ (ทดลอง · เห็นเฉพาะผู้สร้าง)</b><div class="sub">ใช้โมเดล 3 มิติจริงของตัวละครคุณในสนามรบ 3 มิติ แทนภาพวาด · มีท่ายืน ฟัน ร่ายเวท โดนตี ฉลอง · ใช้เน็ตเพิ่มประมาณ 0.6MB ต่อชุด</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px"><span class="sub">${on?'เปิดอยู่':'ปิดอยู่ (ใช้ภาพวาด)'}</span><button class="tg2 ${on?'on':''}" data-av3t="1" aria-pressed="${on}"><i></i></button></div></div>`);};
 document.addEventListener('click',e=>{if(!e.target.closest('[data-av3t]'))return;S.set.av3d=!(S.set.av3d===true);save();if(!S.set.av3d&&AV3.obj)AV3.obj.visible=false;toast(S.set.av3d?'เปิดอวาตาร์ 3 มิติ · ดูได้ในสนามรบ 3 มิติ':'กลับไปใช้ภาพวาด');renderSettings();});
 
