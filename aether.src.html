@@ -742,6 +742,7 @@ table.rep{width:100%;border-collapse:collapse;font-size:12px}
 .avc{background:#fff8e4;border:2px solid #d8c69a;border-radius:10px;padding:4px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;line-height:1.1}
 .avc img{height:62px;object-fit:contain}.avc.on{border-color:var(--gold2);box-shadow:0 0 0 2px #ffd76a88}.avc.lock img{filter:grayscale(1) brightness(.6)}
 #ava{cursor:pointer}
+.acct .acrow{display:flex;gap:6px;margin-top:6px}.acct .acrow input{flex:1;min-width:0;padding:7px 9px;border-radius:8px;border:1.5px solid var(--parch3)}
 .wk{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer}
 .wk img{height:88px;transform:scaleX(var(--fl,1));transform-origin:50% 100%;filter:drop-shadow(0 3px 3px #0008)}
 .wk.walk img{animation:wkb .36s ease-in-out infinite}
@@ -1037,7 +1038,7 @@ function isFresh(o){return (o.best||0)<=1&&Object.values(o.h||{}).every(h=>h.lv<
 async function cloudPush(force){if(!DB||!myId||!cloudReady||cloudBusy||cloudOk===false)return;if(!cloudDirty&&!force)return;cloudBusy=true;cloudDirty=false;
   try{await cloudRef().set({s:JSON.stringify(S),t:S.ts||Date.now(),v:1});cloudOk=true;cloudAt=Date.now();}catch(e){cloudOk=false;}cloudBusy=false;if(screen==='settings')renderSettings();}
 async function cloudLoad(){if(!DB||!myId)return;try{const d=await cloudRef().get();if(d.exists){const c=JSON.parse(d.data().s||'null');
-    if(c&&c.h&&c.form&&((c.ts||0)>(S.ts||0)||isFresh(S))&&!isFresh(c)){S=c;migrate();speed=S.speed||1;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}
+    if(c&&c.h&&c.form&&((c.ts||0)>(S.ts||0)||isFresh(S)||window.SB_SWITCHED)&&!isFresh(c)){window.SB_SWITCHED=false;S=c;migrate();speed=S.speed||1;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}
       if(B)B.over=true;closeModal(false);renderTeam();go('battle');startWave(false);hud();toast('โหลดเซฟจากคลาวด์แล้ว · Lv.'+teamLv());}}
     cloudOk=true;}catch(e){}cloudReady=true;cloudDirty=true;cloudPush();}
 setInterval(()=>cloudPush(),15000);
@@ -3209,6 +3210,23 @@ document.addEventListener('click',e=>{const sc=$('sc-field');if(!sc||sc.hidden||
   const t=e.target.closest('[data-fdact]');if(t){if(t.dataset.fdact==='area'){fdArea=+t.dataset.v;renderField();}return;}
   const mb=e.target.closest('.fdmob');if(mb&&mb._m&&!mb._m.dead){fdFight(mb._m);return;}
   const wd=$('fdWorld');if(wd&&wd.contains(e.target)&&!fdBusy){const r=wd.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;if(y<55)return;fdMark(x,y);wkGo(fdMe,x,Math.max(60,y));}});
+
+// ===================== ACCOUNT (Supabase build only) =====================
+const _rsAcct=renderSettings;renderSettings=function(){_rsAcct();if(!window.SB_STATUS)return;const st=SB_STATUS(),pad=$('setPad');if(!pad)return;
+  pad.insertAdjacentHTML('afterbegin',`<div class="card acct"><b>🔐 บัญชีของคุณ</b>
+    ${!st.ok?`<div class="sub" style="color:#b5462a">เชื่อมต่อระบบออนไลน์ไม่ได้ (${esc(st.err||'')}) · เล่นต่อได้ แต่เซฟอยู่แค่ในเครื่องนี้</div>`
+    :st.anon?`<div class="sub">ตอนนี้เป็น<b>บัญชีผู้เยี่ยมชม</b> เซฟบนคลาวด์ผูกกับเบราว์เซอร์นี้ · ผูกอีเมลไว้เพื่อเล่นต่อบนเครื่องอื่นและกันเซฟหาย</div>
+      <div class="acrow"><input id="acEmail" type="email" placeholder="อีเมลของคุณ" autocomplete="email"><button class="btn gold sm" data-acct="link">ผูกอีเมล</button></div>
+      <details style="margin-top:6px"><summary class="sub">เคยผูกอีเมลไว้แล้ว? เข้าสู่ระบบบนเครื่องนี้</summary><div class="acrow"><input id="acEmail2" type="email" placeholder="อีเมลที่ผูกไว้"><button class="btn sm" data-acct="login">ส่งลิงก์เข้าสู่ระบบ</button></div>
+      <div class="sub">เข้าสู่ระบบแล้ว เซฟของบัญชีนั้นจะมาแทนเซฟผู้เยี่ยมชมบนเครื่องนี้</div></details>`
+    :`<div class="sub">✅ ผูกอีเมลแล้ว: <b>${esc(st.email)}</b> · เปิดเกมบนเครื่องอื่นแล้วเข้าสู่ระบบด้วยอีเมลนี้ได้</div>
+      <button class="btn sm" data-acct="out" style="margin-top:6px;background:var(--parch3);color:var(--ink);box-shadow:none">ออกจากระบบ</button>`}
+    <div class="sub" id="acMsg"></div></div>`);};
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-acct]');if(!b||!window.SB_STATUS)return;const a=b.dataset.acct,msg=t=>{const m=$('acMsg');if(m)m.textContent=t;};
+  if(a==='link'||a==='login'){const v=(($(a==='link'?'acEmail':'acEmail2')||{}).value||'').trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){msg('กรอกอีเมลให้ถูกต้อง');return;}
+    b.disabled=true;cloudPush&&cloudPush(true);const err=await (a==='link'?SB_LINK(v):SB_LOGIN(v));b.disabled=false;
+    msg(err?('ไม่สำเร็จ: '+err):(a==='link'?'ส่งลิงก์ยืนยันไปที่ '+v+' แล้ว กดลิงก์ในอีเมลเพื่อผูกบัญชี (เช็กโฟลเดอร์สแปมด้วย)':'ส่งลิงก์เข้าสู่ระบบไปที่ '+v+' แล้ว เปิดลิงก์ในเบราว์เซอร์นี้'));}
+  else if(a==='out'){await cloudPush(true);try{await window.SBC.auth.signOut();}catch(err){}try{localStorage.removeItem(SAVE);}catch(err){}location.reload();}});
 
 // ===================== BOOT =====================
 const hWasSeen=!!S.seen;

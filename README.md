@@ -24,6 +24,13 @@ python3 build.py        # ได้ aether-trail.html (ภาพอยู่ใ�
 ```
 เพิ่มภาพใหม่: วางไฟล์ใน `assets/` · เพิ่มชื่อในรายการของ `build.py` · เพิ่ม `ชื่อ:'{{ชื่อ}}'` ใน `const IMG={` ของ `aether.src.html`
 
-## เผยแพร่
+## เว็บเกม (GitHub Pages + Supabase)
+- เล่นที่ https://niasmin.github.io/aether-trail/ (`index.html`)
+- `python3 build.py && python3 build_pages.py` → ได้ `index.html` = เกม + `sb.js`
+- `sb.js` ต่อ Supabase แทนระบบของ claude.ai (ฐานข้อมูล ผู้ใช้ เห็นกันในเมือง) โดยโค้ดเกมไม่ต้องแก้
+- ตาราง `public.docs (col, id, data jsonb)` เลียนแบบ path เดิม เช่น `chat/<uid>` · `data/users/<uid>/save` · RLS: เขียนได้เฉพาะเอกสารของตัวเอง · `public.admins` = ผู้สร้างเกม
+- ผู้เล่นเข้าแบบผู้เยี่ยมชมอัตโนมัติ (anonymous) แล้วผูกอีเมลได้ที่ ตั้งค่า → บัญชีของคุณ
+
+## เผยแพร่ (artifact บน claude.ai)
 เผยแพร่ `aether-trail.html` พร้อมไฟล์ทั้งหมดใน `assets/` ไปที่ artifact เดิม (ใช้ความสามารถ db · user · comments · room)
 เซฟผู้เล่นและข้อมูลออนไลน์ (แชท PvP บอสโลก) อยู่ในฐานข้อมูลของ artifact บน claude.ai ไม่ได้อยู่ใน repo นี้
