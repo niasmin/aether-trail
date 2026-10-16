@@ -742,6 +742,13 @@ table.rep{width:100%;border-collapse:collapse;font-size:12px}
 .avc{background:#fff8e4;border:2px solid #d8c69a;border-radius:10px;padding:4px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;line-height:1.1}
 .avc img{height:62px;object-fit:contain}.avc.on{border-color:var(--gold2);box-shadow:0 0 0 2px #ffd76a88}.avc.lock img{filter:grayscale(1) brightness(.6)}
 #ava{cursor:pointer}
+.avu{position:absolute;transform:translate(-50%,-100%);z-index:58;pointer-events:none}
+.avu img{height:100%;display:block;filter:drop-shadow(0 4px 4px #0007) drop-shadow(0 0 6px #9ff3ff88);transform-origin:50% 100%;animation:avid 1.8s ease-in-out infinite}
+.avu.flipL img{transform:scaleX(-1)}.avu.flipL img{animation:none}
+.avu b{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:var(--ink);background:linear-gradient(180deg,#ffe58a,#e0a930);border-radius:6px;padding:0 5px;margin-top:2px;border:1px solid #fff3c0}
+.avu.avwin img{animation:avwin .6s ease-in-out infinite alternate}
+@keyframes avid{50%{transform:translateY(-3px)}}@keyframes avwin{to{transform:translateY(-10px)}}
+
 .mvchip{pointer-events:auto;position:absolute;left:0;top:58px;background:linear-gradient(180deg,#ffe58a,#e0a930);border:2px solid #fff3c0;border-radius:99px;padding:4px 10px;font-size:12px;box-shadow:0 3px 8px #0007;animation:hbob 2s ease-in-out infinite}
 .acct .acrow{display:flex;gap:6px;margin-top:6px}.acct .acrow input{flex:1;min-width:0;padding:7px 9px;border-radius:8px;border:1.5px solid var(--parch3)}
 .wk{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer}
@@ -3248,6 +3255,30 @@ setTimeout(()=>{if(window.SB_STATUS)return;const tp=document.querySelector('.hto
   if(S.mvSeen!==dayNo()&&!$('modalRoot').innerHTML){S.mvSeen=dayNo();save();moveNote();}},5000);
 setInterval(()=>{if(window.SB_STATUS)return;const tp=document.querySelector('.htop');if(tp&&!$('mvChip'))tp.insertAdjacentHTML('beforeend',`<button id="mvChip" class="mvchip" data-mvnote="1">🏰 เกมย้ายไปเว็บใหม่แล้ว ›</button>`);},3000);
 document.addEventListener('click',e=>{if(e.target.closest('[data-mvnote]'))moveNote();});
+
+// ===================== AVATAR JOINS BATTLE (6th, untargetable support) =====================
+const AVSK={sword:['ดาบพิฆาตเข็มทิศ','#ffe9a8'],mage:['ดาวตกเข็มทิศ','#ffd86b'],archer:['ฝนศรดารา','#c8ff9a'],guard:['ปราการเข็มทิศ','#8fd3ff'],'':['ประกายเข็มทิศ','#9ff3ff']};
+function avBRoot(){const M=meState();return MCLS[M.c1]?M.c1:'';}
+function avBImg(p){const k=avKey();return k[1]==='1'&&IMG['ap_'+k[0]+'_'+p]?IMG['ap_'+k[0]+'_'+p]:IMG['av_'+k];}
+function avBPose(p,ms){if(!B||!B.avEl)return;const im=B.avEl.querySelector('img');if(!im)return;const src=avBImg(p);if(im.getAttribute('src')!==src)im.setAttribute('src',src);
+  B.avEl.classList.toggle('flipL',p==='strike'||p==='ready');clearTimeout(B.avPT);if(ms)B.avPT=setTimeout(()=>avBPose(B&&B.over?'win':'ready'),ms/speed);}
+function avBPlace(){if(!B||!B.avEl)return;const el=B.avEl;
+  if(v3Want()&&V3.R&&stage.classList.contains('v3')){const [x,y]=v3Proj(0,0,1.55),[,yt]=v3Proj(0,1.75,1.55);el.style.left=x+'px';el.style.top=y+'px';el.style.height=Math.max(40,y-yt)+'px';}
+  else{const [x,y]=px([31,63]);el.style.left=x+'px';el.style.top=y+'px';el.style.height=(SH*.25)+'px';el.style.zIndex=57;}}
+function avBSrc(){const hs=alive(B.heroes);const avg=hs.length?hs.reduce((s,h)=>s+h.atk,0)/hs.length:1,M=meState(),pts=M.str+M.int+M.vit+M.agi,r=avBRoot();
+  return {atk:avg*(.55+pts*.004),crit:10+M.agi*.1,rl:r==='mage'?'mage':'avatar',dealt:0};}
+function avBTick(dt){if(!B||B.pvp||B.over||!avState().g)return;
+  if(!B.avEl||!B.avEl.isConnected){const d=document.createElement('div');d.className='avu';d.innerHTML=`<img alt="" src="${avBImg('ready')}"><b>${meClsIc()} ${esc(S.pname)}</b>`;unitsEl.appendChild(d);B.avEl=d;B.avA=1.2;B.avS=6;avBPose('ready');}
+  avBPlace();const en=alive(B.en);if(!en.length)return;B.avA-=dt;B.avS-=dt;const r=avBRoot(),[nm,col]=AVSK[r]||AVSK[''];
+  const me={cx:parseFloat(B.avEl.style.left),cy:parseFloat(B.avEl.style.top)-B.avEl.clientHeight*.55};
+  if(B.avS<=0){B.avS=9;avBPose('cast',700);dmgNum(me,nm,'sk');burst(me.cx,me.cy,50,col,600);const src=avBSrc();
+    en.forEach((t,i)=>setTimeout(()=>{if(!t.alive||!B||B.over)return;burst(t.cx,t.cy,55,col,500);dealTo(t,r==='guard'?1.2:1.6,src);},(200+i*90)/speed));
+    if(r==='guard')alive(B.heroes).forEach(h=>{h.shield=(h.shield||0)+Math.round(h.max*.06);});return;}
+  if(B.avA<=0){B.avA=2.2;const front=en.slice().sort((a,b)=>a.pos[0]-b.pos[0])[0];avBPose('strike',380);
+    setTimeout(()=>{if(!front.alive||!B||B.over)return;slash(front,col);dealTo(front,1,avBSrc());},140/speed);}}
+const _petTickAv=petTick;petTick=function(dt){_petTickAv(dt);try{avBTick(dt);}catch(e){}};
+const _hurtAv=hurt;hurt=function(h,e,mult){_hurtAv(h,e,mult);if(B&&B.avEl&&Math.random()<.08)avBPose('hit',300);};
+const _ewAv=endWave;endWave=function(win,why){const had=B&&B.avEl;_ewAv(win,why);if(had&&win){clearTimeout(B&&B.avPT);const im=had.querySelector('img');if(im)im.setAttribute('src',avBImg('win'));had.classList.remove('flipL');had.classList.add('avwin');}};
 
 // ===================== BOOT =====================
 const hWasSeen=!!S.seen;
